@@ -19,26 +19,28 @@ app.get('/', async (req: Request, res: Response) => {
         return;
     }
     if (!process.env.DBNAME) {
-        res.status(500).send("Variável de ambiente DBNAME não está definida")
-        return;
+    res.status(500).send("Variável de ambiente DBNAME não está definida")
+    return;
     }
     if (!process.env.DBPORT) {
         res.status(500).send("Variável de ambiente DBPORT não está definida")
         return;
     }
-    try {
+        try {
         const connection = await mysql.createConnection({
-            host: process.env.DBHOST,
-            user: process.env.DBUSER,
-            password: process.env.DBPASSWORD,
-            database: process.env.DBNAME,
-            port: Number(process.env.DBPORT)
-        })
-        res.send("Conectado ao banco de dados com sucesso!");
+    host: process.env.DBHOST,
+    user: process.env.DBUSER,
+    password: process.env.DBPASSWORD,
+    database: process.env.DBNAME, // <-- aqui!
+    port: Number(process.env.DBPORT)
+});
+
+        const [rows] = await connection.execute('SELECT id, nome, preco, urlfoto, descricao FROM produtos');
+        res.json(rows as any[]); // <-- Corrigido aqui
+
         await connection.end();
-    }
-    catch (error) {
-        res.status(500).send("Erro ao conectar ao banco de dados: " + error);
+    } catch (error) {
+        res.status(500).json({ error: "Erro ao buscar produtos: " + error });
     }
 });
 
@@ -58,8 +60,6 @@ CREATE TABLE produtos (
 );
 Faz pelo menos 3 inserções nessa tabela
 */ 
-
-
 
 
 app.listen(8000, () => {
